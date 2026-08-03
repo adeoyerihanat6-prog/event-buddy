@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Mail, User } from "lucide-react";
-import { motion } from "framer-motion";
 
 import googleLogo from "../assets/google.svg";
 
+import AppLayout from "../components/ui/AppLayout";
 import BackButton from "../components/ui/BackButton";
 import AuthHeader from "../components/ui/AuthHeader";
 import Button from "../components/ui/Button";
@@ -95,110 +95,109 @@ const Register = () => {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="h-screen w-screen fixed inset-0 bg-[#0B0B0F] text-white flex flex-col justify-between overflow-hidden"
+    <AppLayout
+      noBottomNav
+      header={
+        <div>
+          <BackButton />
+          <div className="mt-3">
+            <AuthHeader
+              title="Create Account"
+              subtitle="Join Event Buddy and start finding your people today."
+            />
+          </div>
+        </div>
+      }
     >
-      {/* Top Header Section (Locked) */}
-      <div className="px-6 pt-6 shrink-0">
-        <BackButton />
-        <div className="mt-3">
-          <AuthHeader
-            title="Create Account"
-            subtitle="Join Event Buddy and start finding your people today."
-          />
+      <div className="flex flex-col justify-between min-h-[calc(100%-80px)] py-2">
+        <div className="space-y-3.5">
+          {error && (
+            <div className="p-2.5 bg-red-500/10 border border-red-500/30 text-red-400 text-xs rounded-xl text-center">
+              {error}
+            </div>
+          )}
+
+          {/* Form */}
+          <form onSubmit={handleRegister} className="space-y-3">
+            {/* Full Name */}
+            <div className="relative">
+              <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+              <Input
+                type="text"
+                placeholder="Full name"
+                className="pl-11 py-2.5 text-xs bg-[#17171C] border-white/10 rounded-xl select-text"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                required
+              />
+            </div>
+
+            {/* Email */}
+            <div className="relative">
+              <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+              <Input
+                type="email"
+                placeholder="Email address"
+                className="pl-11 py-2.5 text-xs bg-[#17171C] border-white/10 rounded-xl select-text"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+
+            {/* Password */}
+            <PasswordInput
+              placeholder="Password"
+              className="py-2.5 text-xs bg-[#17171C] border-white/10 rounded-xl select-text"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+
+            {/* Confirm Password */}
+            <PasswordInput
+              placeholder="Confirm Password"
+              className="py-2.5 text-xs bg-[#17171C] border-white/10 rounded-xl select-text"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+            />
+
+            {/* Create Account Button */}
+            <div className="pt-1">
+              <Button type="submit" disabled={loading} className="w-full py-3 rounded-xl bg-[#FF6B6B] text-xs font-semibold active:scale-[0.98] transition shadow-md shadow-[#FF6B6B]/20">
+                {loading ? "Creating Account..." : "Create Account"}
+              </Button>
+            </div>
+          </form>
+
+          {/* Divider */}
+          <Divider className="my-4" />
+
+          {/* Google */}
+          <div className="active:scale-[0.98] transition">
+            <SocialButton
+              onClick={handleGoogleRegister}
+              icon={<img src={googleLogo} alt="Google" className="w-4 h-4" />}
+              className="py-2.5 text-xs rounded-xl bg-[#17171C] border border-white/10"
+            >
+              Continue with Google
+            </SocialButton>
+          </div>
         </div>
-      </div>
 
-      {/* Form Content Area (Scrollable within boundaries) */}
-      <div className="flex-1 overflow-y-auto px-6 py-2 overscroll-contain flex flex-col justify-center">
-        {error && (
-          <div className="mb-3 p-2.5 bg-red-500/10 border border-red-500/30 text-red-400 text-xs rounded-xl text-center">
-            {error}
-          </div>
-        )}
-
-        {/* Form */}
-        <form onSubmit={handleRegister} className="space-y-3.5">
-          {/* Full Name */}
-          <div className="relative">
-            <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-            <Input
-              type="text"
-              placeholder="Full name"
-              className="pl-12 py-3 text-xs bg-[#17171C] border-white/10 rounded-2xl"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              required
-            />
-          </div>
-
-          {/* Email */}
-          <div className="relative">
-            <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-            <Input
-              type="email"
-              placeholder="Email address"
-              className="pl-12 py-3 text-xs bg-[#17171C] border-white/10 rounded-2xl"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-
-          {/* Password */}
-          <PasswordInput
-            placeholder="Password"
-            className="py-3 text-xs bg-[#17171C] border-white/10 rounded-2xl"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-
-          {/* Confirm Password */}
-          <PasswordInput
-            placeholder="Confirm Password"
-            className="py-3 text-xs bg-[#17171C] border-white/10 rounded-2xl"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-          />
-
-          {/* Create Account Button */}
-          <div className="pt-1">
-            <Button type="submit" disabled={loading} className="w-full py-3.5 rounded-2xl bg-[#FF6B6B] text-xs font-semibold active:scale-[0.98] transition">
-              {loading ? "Creating Account..." : "Create Account"}
-            </Button>
-          </div>
-        </form>
-
-        {/* Divider */}
-        <Divider className="my-4" />
-
-        {/* Google */}
-        <div className="active:scale-[0.98] transition">
-          <SocialButton
-            onClick={handleGoogleRegister}
-            icon={<img src={googleLogo} alt="Google" className="w-4 h-4" />}
-            className="py-3 text-xs rounded-2xl bg-[#17171C] border border-white/10"
+        {/* Footer */}
+        <div className="pt-6 pb-2 text-center text-gray-400 text-xs">
+          Already have an account?{" "}
+          <Link
+            to="/login"
+            className="text-[#FF6B6B] font-semibold hover:underline"
           >
-            Continue with Google
-          </SocialButton>
+            Sign In
+          </Link>
         </div>
       </div>
-
-      {/* Footer (Anchored at the bottom) */}
-      <div className="p-6 text-center text-gray-400 text-xs shrink-0 bg-[#0B0B0F]">
-        Already have an account?{" "}
-        <Link
-          to="/login"
-          className="text-[#FF6B6B] font-semibold hover:underline"
-        >
-          Sign In
-        </Link>
-      </div>
-    </motion.div>
+    </AppLayout>
   );
 };
 

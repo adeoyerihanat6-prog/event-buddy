@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { Send } from "lucide-react";
-import { motion } from "framer-motion";
 import { io } from "socket.io-client";
 
+import AppLayout from "../components/ui/AppLayout";
 import BackButton from "../components/ui/BackButton";
 import API from "../services/api";
 
@@ -92,47 +92,44 @@ const Chat = () => {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="h-screen w-screen fixed inset-0 bg-[#0B0B0F] text-white flex flex-col overflow-hidden"
-    >
-      {/* Pinned Sticky Header (Stays locked at the top like native messaging apps) */}
-      <div className="bg-[#17171C]/90 backdrop-blur-md border-b border-white/10 px-4 py-3 flex items-center justify-between shrink-0 z-20">
-        <div className="flex items-center gap-3">
-          <BackButton />
+    <AppLayout
+      header={
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {isPrivate && (
-              <img
-                src={friendInfo?.avatar || "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg"}
-                alt="buddy avatar"
-                className="w-9 h-9 rounded-full object-cover border border-white/10"
-              />
-            )}
-            <div>
-              <h1 className="text-sm font-bold truncate max-w-[200px]">
-                {isPrivate
-                  ? friendInfo?.name || "Direct Message"
-                  : eventId
-                  ? "Event Group Chat"
-                  : "General Community Chat"}
-              </h1>
-              <p className="text-[10px] text-emerald-400">
-                {isPrivate ? "● Online" : "● Live Connection"}
-              </p>
+            <BackButton />
+            <div className="flex items-center gap-3 truncate">
+              {isPrivate && (
+                <img
+                  src={friendInfo?.avatar || "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg"}
+                  alt="buddy avatar"
+                  className="w-8 h-8 rounded-full object-cover border border-white/10 shrink-0"
+                />
+              )}
+              <div className="truncate">
+                <h1 className="text-xs font-bold truncate max-w-[180px]">
+                  {isPrivate
+                    ? friendInfo?.name || "Direct Message"
+                    : eventId
+                    ? "Event Group Chat"
+                    : "General Community Chat"}
+                </h1>
+                <p className="text-[10px] text-emerald-400 mt-0.5">
+                  {isPrivate ? "● Online" : "● Live Connection"}
+                </p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Message Feed (Scrollable Independent Container) */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 overscroll-contain">
+      }
+    >
+      {/* Chat Messages Feed Container */}
+      <div className="space-y-3 pb-20">
         {loading ? (
-          <div className="flex justify-center items-center h-full">
+          <div className="flex justify-center items-center py-20">
             <p className="text-gray-500 text-xs">Loading messages...</p>
           </div>
         ) : messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-gray-500 text-xs">
+          <div className="flex flex-col items-center justify-center py-20 text-gray-500 text-xs">
             <p>No messages yet. Start the conversation! 👋</p>
           </div>
         ) : (
@@ -147,7 +144,7 @@ const Chat = () => {
                   <img
                     src={msg.sender?.avatar || "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg"}
                     alt="avatar"
-                    className="w-7 h-7 rounded-full object-cover border border-white/10 shrink-0 mb-1"
+                    className="w-6 h-6 rounded-full object-cover border border-white/10 shrink-0 mb-1"
                   />
                 )}
                 <div
@@ -158,7 +155,7 @@ const Chat = () => {
                   }`}
                 >
                   {!isMe && <p className="font-bold text-[#FF6B6B] mb-0.5 text-[10px]">{msg.sender?.name}</p>}
-                  <p className="break-words">{msg.text}</p>
+                  <p className="break-words select-text">{msg.text}</p>
                 </div>
               </div>
             );
@@ -167,26 +164,25 @@ const Chat = () => {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Form Bar (Anchored securely at bottom) */}
-      <form
-        onSubmit={handleSend}
-        className="bg-[#17171C]/95 backdrop-blur-md border-t border-white/10 p-3 px-4 flex items-center gap-2 shrink-0 z-20"
-      >
-        <input
-          type="text"
-          placeholder="Type a message..."
-          value={newMessage}
-          onChange={(e) => setNewMessage(e.target.value)}
-          className="flex-1 bg-[#0B0B0F] border border-white/10 rounded-2xl px-4 py-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#FF6B6B] transition"
-        />
-        <button
-          type="submit"
-          className="p-2.5 bg-[#FF6B6B] text-white rounded-2xl hover:bg-[#ff5252] transition shadow-md shadow-[#FF6B6B]/20 active:scale-95 shrink-0"
-        >
-          <Send size={16} />
-        </button>
-      </form>
-    </motion.div>
+      {/* Floating Pinned Input Form Bar (Sits directly above BottomNav/Keyboard) */}
+      <div className="absolute bottom-[72px] left-0 right-0 bg-[#17171C]/95 backdrop-blur-md border-t border-white/10 p-3 px-6 z-30">
+        <form onSubmit={handleSend} className="flex items-center gap-2">
+          <input
+            type="text"
+            placeholder="Type a message..."
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            className="flex-1 bg-[#0B0B0F] border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#FF6B6B] transition select-text"
+          />
+          <button
+            type="submit"
+            className="p-2.5 bg-[#FF6B6B] text-white rounded-xl hover:bg-[#ff5252] transition shadow-md shadow-[#FF6B6B]/20 active:scale-95 shrink-0"
+          >
+            <Send size={15} />
+          </button>
+        </form>
+      </div>
+    </AppLayout>
   );
 };
 

@@ -6,10 +6,10 @@ import {
   Eye,
   EyeOff,
 } from "lucide-react";
-import { motion } from "framer-motion";
 
 import googleLogo from "../assets/google.svg";
 
+import AppLayout from "../components/ui/AppLayout";
 import Button from "../components/ui/Button";
 import Input from "../components/ui/Input";
 import BackButton from "../components/ui/BackButton";
@@ -81,96 +81,95 @@ const Login = () => {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="h-screen w-screen fixed inset-0 bg-[#0B0B0F] text-white flex flex-col justify-between overflow-hidden"
+    <AppLayout
+      noBottomNav
+      header={
+        <div>
+          <BackButton />
+          <div className="mt-3.5">
+            <AuthHeader
+              title="Welcome Back"
+              subtitle="Sign in to discover events, connect with people and create unforgettable memories."
+            />
+          </div>
+        </div>
+      }
     >
-      {/* Top Header Section (Locked) */}
-      <div className="px-6 pt-6 shrink-0">
-        <BackButton />
-        <div className="mt-4">
-          <AuthHeader
-            title="Welcome Back"
-            subtitle="Sign in to discover events, connect with people and create unforgettable memories."
-          />
-        </div>
-      </div>
+      <div className="flex flex-col justify-between min-h-[calc(100%-80px)] py-2">
+        <div className="space-y-4">
+          {errorMsg && (
+            <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-xs rounded-xl text-center">
+              {errorMsg}
+            </div>
+          )}
 
-      {/* Form Content Area (Scrollable within boundaries) */}
-      <div className="flex-1 overflow-y-auto px-6 py-4 overscroll-contain flex flex-col justify-center">
-        {errorMsg && (
-          <div className="mb-4 p-3 bg-red-500/10 border border-red-500 text-red-400 text-xs rounded-xl text-center">
-            {errorMsg}
-          </div>
-        )}
+          <form onSubmit={handleLogin} className="space-y-3.5">
+            <div className="relative">
+              <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+              <Input 
+                type="email"
+                placeholder="Email address"
+                className="pl-11 py-2.5 text-xs bg-[#17171C] border-white/10 rounded-xl select-text"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
 
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div className="relative">
-            <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-            <Input 
-              type="email"
-              placeholder="Email address"
-              className="pl-12 py-3 text-xs bg-[#17171C] border-white/10 rounded-2xl"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
+            <div className="relative">
+              <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+              <Input
+                type={showPassword ? "text" : "password"}
+                placeholder="Password"
+                className="pl-11 pr-11 py-2.5 text-xs bg-[#17171C] border-white/10 rounded-xl select-text"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 active:scale-95"
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
 
-          <div className="relative">
-            <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-            <Input
-              type={showPassword ? "text" : "password"}
-              placeholder="Password"
-              className="pl-12 pr-12 py-3 text-xs bg-[#17171C] border-white/10 rounded-2xl"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 active:scale-95"
+            <div className="flex justify-end pt-0.5">
+              <button type="button" className="text-[11px] text-[#FF6B6B] font-semibold active:opacity-80">
+                Forgot Password?
+              </button>
+            </div>
+
+            <div className="pt-1">
+              <Button type="submit" disabled={loading} className="w-full py-3 rounded-xl bg-[#FF6B6B] text-xs font-semibold active:scale-[0.98] transition shadow-md shadow-[#FF6B6B]/20">
+                {loading ? "Signing In..." : "Sign In"}
+              </Button>
+            </div>
+          </form>
+
+          <Divider className="my-5" />
+
+          <div className="active:scale-[0.98] transition">
+            <SocialButton
+              onClick={handleGoogleLogin}
+              icon={<img src={googleLogo} alt="Google" className="w-4 h-4" />}
+              className="py-2.5 text-xs rounded-xl bg-[#17171C] border border-white/10"
             >
-              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
+              Continue with Google
+            </SocialButton>
           </div>
+        </div>
 
-          <div className="flex justify-end">
-            <button type="button" className="text-xs text-[#FF6B6B] font-semibold active:opacity-80">
-              Forgot Password?
-            </button>
-          </div>
-
-          <div className="pt-2">
-            <Button type="submit" disabled={loading} className="w-full py-3.5 rounded-2xl bg-[#FF6B6B] text-xs font-semibold active:scale-[0.98] transition">
-              {loading ? "Signing In..." : "Sign In"}
-            </Button>
-          </div>
-        </form>
-
-        <Divider className="my-6" />
-
-        <div className="active:scale-[0.98] transition">
-          <SocialButton
-            onClick={handleGoogleLogin}
-            icon={<img src={googleLogo} alt="Google" className="w-4 h-4" />}
-            className="py-3 text-xs rounded-2xl bg-[#17171C] border border-white/10"
-          >
-            Continue with Google
-          </SocialButton>
+        {/* Footer Link */}
+        <div className="pt-8 pb-4 text-center text-gray-400 text-xs">
+          Don't have an account?{" "}
+          <Link to="/register" className="text-[#FF6B6B] font-semibold hover:underline">
+            Create Account
+          </Link>
         </div>
       </div>
-
-      {/* Footer Link (Anchored at the bottom) */}
-      <div className="p-6 text-center text-gray-400 text-xs shrink-0 bg-[#0B0B0F]">
-        Don't have an account?{" "}
-        <Link to="/register" className="text-[#FF6B6B] font-semibold hover:underline">
-          Create Account
-        </Link>
-      </div>
-    </motion.div>
+    </AppLayout>
   );
 };
 

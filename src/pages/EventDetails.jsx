@@ -9,8 +9,8 @@ import {
   Share2, 
   ShieldCheck 
 } from "lucide-react";
-import { motion } from "framer-motion";
 
+import AppLayout from "../components/ui/AppLayout";
 import BackButton from "../components/ui/BackButton";
 import Button from "../components/ui/Button";
 
@@ -80,13 +80,11 @@ const EventDetails = () => {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="h-screen w-screen fixed inset-0 bg-[#0B0B0F] text-white flex flex-col overflow-hidden"
+    <AppLayout
+      noPadding
+      header={null} // We manage our own banner header layout inside AppLayout
     >
-      {/* Independent Scrollable Content Container */}
-      <div className="flex-1 overflow-y-auto pb-28 overscroll-contain">
+      <div className="flex flex-col min-h-full pb-28">
         
         {/* Top Image & Absolute Navigation */}
         <div className="relative h-60 w-full shrink-0">
@@ -182,7 +180,7 @@ const EventDetails = () => {
           {/* Description */}
           <div>
             <h2 className="text-xs font-bold uppercase tracking-wider text-gray-300 mb-2">About Event</h2>
-            <p className="text-xs text-gray-400 leading-relaxed">
+            <p className="text-xs text-gray-400 leading-relaxed select-text">
               {event.description}
             </p>
           </div>
@@ -203,32 +201,32 @@ const EventDetails = () => {
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Fixed Bottom Action Bar */}
-      <div className="fixed bottom-0 left-0 w-full bg-[#17171C]/95 backdrop-blur-md border-t border-white/10 px-6 py-3.5 flex items-center gap-3 z-50 shrink-0">
-        <Button
-          onClick={() => navigate("/chat")}
-          className={`flex-1 flex items-center justify-center gap-2 py-3 text-xs rounded-xl ${
-            isGoing ? "bg-[#0B0B0F] text-white border border-white/20 hover:bg-white/10" : "bg-[#17171C] text-white border border-white/10"
-          }`}
-        >
-          <MessageSquare size={16} />
-          {isGoing ? "Open Chat" : "Join Group Chat"}
-        </Button>
+        {/* Fixed Bottom Action Bar */}
+        <div className="absolute bottom-0 left-0 w-full bg-[#17171C]/95 backdrop-blur-md border-t border-white/10 px-6 py-3.5 flex items-center gap-3 z-30 shrink-0">
+          <Button
+            onClick={() => navigate("/chat")}
+            className={`flex-1 flex items-center justify-center gap-2 py-3 text-xs rounded-xl ${
+              isGoing ? "bg-[#0B0B0F] text-white border border-white/20 hover:bg-white/10" : "bg-[#17171C] text-white border border-white/10"
+            }`}
+          >
+            <MessageSquare size={16} />
+            {isGoing ? "Open Chat" : "Join Group Chat"}
+          </Button>
 
-        <button
-          onClick={handleToggleGoing}
-          className={`px-5 py-3 rounded-xl font-semibold text-xs transition-all shadow-lg active:scale-[0.98] ${
-            isGoing
-              ? "bg-emerald-500 text-white shadow-emerald-500/20"
-              : "bg-[#FF6B6B] text-white shadow-[#FF6B6B]/20 hover:bg-[#ff5252]"
-          }`}
-        >
-          {isGoing ? "✓ Going" : "I'm Going"}
-        </button>
+          <button
+            onClick={handleToggleGoing}
+            className={`px-5 py-3 rounded-xl font-semibold text-xs transition-all shadow-lg active:scale-[0.98] ${
+              isGoing
+                ? "bg-emerald-500 text-white shadow-emerald-500/20"
+                : "bg-[#FF6B6B] text-white shadow-[#FF6B6B]/20 hover:bg-[#ff5252]"
+            }`}
+          >
+            {isGoing ? "✓ Going" : "I'm Going"}
+          </button>
+        </div>
       </div>
-    </motion.div>
+    </AppLayout>
   );
 };
 

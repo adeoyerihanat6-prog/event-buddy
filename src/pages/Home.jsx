@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Bell, CircleUserRound, Flame, Plus, Music2, Trophy, PartyPopper, Tent, Coffee, Gamepad2, Search } from "lucide-react";
-import { motion } from "framer-motion";
 
+import AppLayout from "../components/ui/AppLayout";
 import CategoryChip from "../components/ui/CategoryChip";
 import EventCard from "../components/ui/EventCard";
 import Button from "../components/ui/Button";
-import BottomNav from "../components/ui/BottomNav";
 
 // Import your API service functions
 import { fetchEvents, fetchNotifications } from "../services/api";
@@ -60,78 +59,73 @@ const Home = () => {
   });
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="h-screen w-screen fixed inset-0 bg-[#0B0B0F] text-white flex flex-col overflow-hidden"
-    >
-      {/* Pinned Sticky Header & Search Bar Container */}
-      <div className="bg-[#17171C]/90 backdrop-blur-md border-b border-white/10 px-6 py-4 shrink-0 z-20 space-y-3">
-        <div className="flex items-center justify-between">
+    <AppLayout
+      unreadMessagesCount={unreadMessages}
+      header={
+        <div className="flex items-center justify-between w-full">
           <div>
-            <h1 className="text-base font-bold">
+            <h1 className="text-sm font-bold">
               Ready for your next adventure?
             </h1>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 shrink-0">
             {/* Notification Bell with Dynamic Badge */}
             <button 
               onClick={() => {
                 setUnreadNotifications(0); // Clear badge locally immediately on click
                 navigate("/notifications");
               }} 
-              className="relative w-9 h-9 rounded-full bg-[#17171C] border border-white/10 flex items-center justify-center hover:bg-white/10 transition active:scale-95"
+              className="relative w-8 h-8 rounded-full bg-[#17171C] border border-white/10 flex items-center justify-center hover:bg-white/10 transition active:scale-95"
             >
               {unreadNotifications > 0 && (
-                <span className="absolute -top-1 -right-1 bg-[#FF6B6B] text-white text-[9px] font-bold px-1.5 py-0.2 rounded-full min-w-[16px] text-center shadow-md animate-pulse">
+                <span className="absolute -top-1 -right-1 bg-[#FF6B6B] text-white text-[9px] font-bold px-1 py-0.2 rounded-full min-w-[14px] text-center shadow-md animate-pulse">
                   {unreadNotifications > 9 ? "9+" : unreadNotifications}
                 </span>
               )}
-              <Bell size={16} className="text-gray-200" />
+              <Bell size={14} className="text-gray-200" />
             </button>
 
             {/* Profile Icon */}
             <button 
               onClick={() => navigate("/profile")}
-              className="w-9 h-9 rounded-full bg-[#17171C] border border-white/10 flex items-center justify-center hover:bg-white/10 transition active:scale-95"
+              className="w-8 h-8 rounded-full bg-[#17171C] border border-white/10 flex items-center justify-center hover:bg-white/10 transition active:scale-95"
             >
-              <CircleUserRound size={18} className="text-gray-200" />
+              <CircleUserRound size={16} className="text-gray-200" />
             </button>
           </div>
         </div>
-
+      }
+    >
+      <div className="space-y-5">
         {/* Search Input Bar */}
         <div className="relative">
-          <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
           <input 
             type="text"
             placeholder="Search events, locations..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-[#0B0B0F] border border-white/10 rounded-xl pl-10 pr-3 py-2.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#FF6B6B] transition"
+            className="w-full bg-[#17171C] border border-white/10 rounded-xl pl-10 pr-3.5 py-3 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#FF6B6B] transition select-text"
           />
         </div>
-      </div>
 
-      {/* Independent Scrollable Feed Area */}
-      <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6 pb-28 overscroll-contain">
         {/* Hero / Host Event Banner */}
         <div 
           onClick={() => navigate("/create")}
-          className="rounded-3xl bg-gradient-to-r from-[#FF6B6B] to-[#FF8E53] p-5 shadow-lg shadow-[#FF6B6B]/20 cursor-pointer hover:opacity-95 transition active:scale-[0.98]"
+          className="rounded-2xl bg-gradient-to-r from-[#FF6B6B] to-[#FF8E53] p-4 shadow-lg shadow-[#FF6B6B]/20 cursor-pointer hover:opacity-95 transition active:scale-[0.98]"
         >
           <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-base font-bold">
+            <div className="pr-3">
+              <h2 className="text-xs font-bold text-white uppercase tracking-wider">
                 Host Your Own Event
               </h2>
-              <p className="mt-0.5 text-white/90 text-[11px] leading-relaxed">
+              <p className="mt-0.5 text-white/90 text-[10px] leading-relaxed">
                 Bring people together and create unforgettable memories.
               </p>
             </div>
-            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shrink-0">
-              <Plus size={18} />
+            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+              <Plus size={16} />
             </div>
           </div>
 
@@ -140,7 +134,7 @@ const Home = () => {
               e.stopPropagation(); 
               navigate("/create");
             }}
-            className="mt-4 bg-white text-black hover:bg-gray-100 font-semibold w-full text-xs py-2.5 rounded-xl"
+            className="mt-3.5 bg-white text-black hover:bg-gray-100 font-semibold w-full text-xs py-2 rounded-xl"
           >
             Create Event
           </Button>
@@ -148,18 +142,18 @@ const Home = () => {
 
         {/* Categories Selection */}
         <section>
-          <h2 className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-3">
+          <h2 className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-2.5">
             Categories
           </h2>
 
           <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
             {categories.map((cat) => {
-              let icon = <Music2 size={16} />;
-              if (cat === "Party") icon = <PartyPopper size={16} />;
-              if (cat === "Festival") icon = <Tent size={16} />;
-              if (cat === "Meetup") icon = <Coffee size={16} />;
-              if (cat === "Sports") icon = <Trophy size={16} />;
-              if (cat === "Gaming") icon = <Gamepad2 size={16} />;
+              let icon = <Music2 size={15} />;
+              if (cat === "Party") icon = <PartyPopper size={15} />;
+              if (cat === "Festival") icon = <Tent size={15} />;
+              if (cat === "Meetup") icon = <Coffee size={15} />;
+              if (cat === "Sports") icon = <Trophy size={15} />;
+              if (cat === "Gaming") icon = <Gamepad2 size={15} />;
 
               return (
                 <div key={cat} onClick={() => setSelectedCategory(cat)} className="cursor-pointer shrink-0">
@@ -175,11 +169,11 @@ const Home = () => {
         </section>
 
         {/* Trending / Live Events Feed Section */}
-        <section>
-          <div className="flex items-center justify-between mb-3">
+        <section className="space-y-3">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
-              <Flame className="text-[#FF6B6B]" size={18} />
-              <h2 className="text-xs font-bold uppercase tracking-wider text-gray-300">
+              <Flame className="text-[#FF6B6B]" size={16} />
+              <h2 className="text-[10px] font-bold uppercase tracking-wider text-gray-300">
                 {selectedCategory === "All" ? "Trending Events" : `${selectedCategory} Events`}
               </h2>
             </div>
@@ -214,10 +208,7 @@ const Home = () => {
           </div>
         </section>
       </div>
-
-      {/* Persistent Bottom Nav with active dynamic unread message badge count */}
-      <BottomNav unreadMessagesCount={unreadMessages} />
-    </motion.div>
+    </AppLayout>
   );
 };
 
