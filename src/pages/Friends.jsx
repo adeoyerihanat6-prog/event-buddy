@@ -18,9 +18,11 @@ const Friends = () => {
     const fetchFriends = async () => {
       try {
         const { data } = await API.get("/users/friends");
-        setFriends(data);
+        // Ensure we fallback to an empty array if data isn't an array
+        setFriends(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error("Error fetching friends:", error);
+        setFriends([]);
       } finally {
         setLoading(false);
       }
@@ -50,12 +52,12 @@ const Friends = () => {
       <div className="space-y-3">
         {loading ? (
           <div className="text-center text-gray-500 text-xs mt-10">Loading friends...</div>
-        ) : friends.length === 0 ? (
+        ) : (friends || []).length === 0 ? (
           <div className="p-6 bg-[#17171C] border border-white/10 rounded-2xl text-center text-gray-400 text-xs leading-relaxed">
             No friends added yet. Go to Discover and connect with people!
           </div>
         ) : (
-          friends.map((friend) => (
+          (friends || []).map((friend) => (
             <div
               key={friend._id}
               className="flex items-center justify-between p-3.5 bg-[#17171C] border border-white/10 rounded-2xl hover:border-[#FF6B6B]/50 transition"
