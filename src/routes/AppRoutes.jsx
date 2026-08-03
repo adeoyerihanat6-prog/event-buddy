@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-
+import InstallPWAButton from '../components/ui/InstallPWAButton';
 import Splash from "../pages/Splash";
 import Onboarding from "../pages/Onboarding";
 import Login from "../pages/Login";
@@ -57,6 +57,7 @@ const AppRoutes = () => {
         {/* Fallback Not Found */}
         <Route path="*" element={<NotFound />} />
       </Routes>
+      <InstallPWAButton />
     </BrowserRouter>
   );
 };
