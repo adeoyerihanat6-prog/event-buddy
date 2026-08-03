@@ -93,6 +93,7 @@ const Chat = () => {
 
   return (
     <AppLayout
+      noBottomNav
       header={
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -164,8 +165,8 @@ const Chat = () => {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Floating Pinned Input Form Bar (Sits directly above BottomNav/Keyboard) */}
-      <div className="absolute bottom-[72px] left-0 right-0 bg-[#17171C]/95 backdrop-blur-md border-t border-white/10 p-3 px-6 z-30">
+      {/* Floating Pinned Input Form Bar */}
+      <div className="absolute bottom-0 left-0 right-0 bg-[#17171C]/95 backdrop-blur-md border-t border-white/10 p-3 px-6 z-30">
         <form onSubmit={handleSend} className="flex items-center gap-2">
           <input
             type="text"

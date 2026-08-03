@@ -27,7 +27,7 @@ const Onboarding = () => {
   };
 
   return (
-    <AppLayout noBottomNav>
+    <AppLayout noHeader noBottomNav>
       <div className="absolute inset-0 h-screen w-screen overflow-hidden bg-[#0B0B0F]">
         <Swiper
           modules={[Pagination]}

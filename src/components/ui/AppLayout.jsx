@@ -1,6 +1,6 @@
 import BottomNav from "./BottomNav";
 
-const AppLayout = ({ children, header }) => {
+const AppLayout = ({ children, header, noBottomNav = false, unreadMessagesCount = 0 }) => {
   return (
     <div className="h-screen w-screen fixed inset-0 bg-[#0B0B0F] text-white flex flex-col overflow-hidden">
       {/* Pinned Sticky Header */}
@@ -11,12 +11,12 @@ const AppLayout = ({ children, header }) => {
       )}
 
       {/* Independent Scrollable Content Container */}
-      <div className="flex-1 overflow-y-auto px-6 py-6 pb-28 overscroll-contain">
+      <div className={`flex-1 overflow-y-auto px-6 py-6 overscroll-contain ${noBottomNav ? "pb-6" : "pb-28"}`}>
         {children}
       </div>
 
       {/* Persistent Bottom Navigation */}
-      <BottomNav />
+      {!noBottomNav && <BottomNav unreadMessagesCount={unreadMessagesCount} />}
     </div>
   );
 };
