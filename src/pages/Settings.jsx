@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bell, Lock, Shield, User, Globe, HelpCircle, ChevronRight, ArrowLeft } from "lucide-react";
+import { Bell, Lock, Shield, User, Globe, HelpCircle, ChevronRight, LogOut } from "lucide-react";
 import { motion } from "framer-motion";
 
 import BackButton from "../components/ui/BackButton";
+import BottomNav from "../components/ui/BottomNav";
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -13,12 +14,23 @@ const Settings = () => {
   const [locationSharing, setLocationSharing] = useState(true);
   const [publicProfile, setPublicProfile] = useState(true);
 
+  // Dynamic unread message badge state for BottomNav
+  const [unreadMessages, setUnreadMessages] = useState(0);
+
+  const handleLogout = () => {
+    // Clear user session from browser storage
+    localStorage.removeItem("userInfo");
+    
+    // Redirect to login
+    navigate("/login");
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="min-h-screen bg-[#0B0B0F] text-white px-6 py-8 pb-24"
+      className="min-h-screen bg-[#0B0B0F] text-white px-6 py-8 pb-32"
     >
       {/* Top Header */}
       <div className="flex items-center justify-between mb-8">
@@ -115,7 +127,10 @@ const Settings = () => {
           </h2>
           <div className="bg-[#17171C] border border-white/10 rounded-2xl divide-y divide-white/5">
             
-            <button className="w-full p-4 flex items-center justify-between text-left hover:bg-white/5 transition">
+            <button 
+              onClick={() => navigate("/safety")}
+              className="w-full p-4 flex items-center justify-between text-left hover:bg-white/5 transition"
+            >
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-xl bg-blue-500/10 text-blue-400">
                   <Shield size={18} />
@@ -144,7 +159,34 @@ const Settings = () => {
           </div>
         </div>
 
+        {/* Section: Account Session */}
+        <div>
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">
+            Session
+          </h2>
+          <div className="bg-[#17171C] border border-white/10 rounded-2xl overflow-hidden">
+            <button 
+              onClick={handleLogout}
+              className="w-full p-4 flex items-center justify-between text-left hover:bg-red-500/10 transition group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-red-500/10 text-red-400 group-hover:bg-red-500/20">
+                  <LogOut size={18} />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-red-400">Log Out</p>
+                  <p className="text-xs text-gray-400">Sign out of your account on this device</p>
+                </div>
+              </div>
+              <ChevronRight size={18} className="text-gray-500" />
+            </button>
+          </div>
+        </div>
+
       </div>
+
+      {/* Persistent Bottom Nav with dynamic unread count */}
+      <BottomNav unreadMessagesCount={unreadMessages} />
     </motion.div>
   );
 };

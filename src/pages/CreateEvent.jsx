@@ -4,10 +4,10 @@ import {
   Calendar, 
   Clock, 
   MapPin, 
-  Tag, 
   Users, 
   FileText, 
-  Sparkles 
+  Sparkles,
+  Image as ImageIcon
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -15,6 +15,9 @@ import BackButton from "../components/ui/BackButton";
 import Button from "../components/ui/Button";
 import Input from "../components/ui/Input";
 import BottomNav from "../components/ui/BottomNav";
+
+// Import your API service helper
+import { createEvent } from "../services/api";
 
 const CreateEvent = () => {
   const navigate = useNavigate();
@@ -28,6 +31,11 @@ const CreateEvent = () => {
   const [maxAttendees, setMaxAttendees] = useState("");
   const [vibe, setVibe] = useState("Just looking for company");
   const [description, setDescription] = useState("");
+  const [imageFile, setImageFile] = useState(null);
+  const [loading, setLoading] = useState(false);
+  
+  // Unread message badge state for BottomNav
+  const [unreadMessages, setUnreadMessages] = useState(0);
 
   const categories = ["Music", "Party", "Festival", "Meetup", "Sports", "Gaming"];
   const vibeOptions = [
@@ -37,22 +45,35 @@ const CreateEvent = () => {
     "Looking to make friends"
   ];
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const newEvent = {
-      title,
-      category,
-      date,
-      time,
-      location,
-      maxAttendees,
-      vibe,
-      description,
-    };
+    setLoading(true);
 
-    console.log("Created Event:", newEvent);
-    // TODO: Send data to your backend API, then redirect to home or event details
-    navigate("/home");
+    try {
+      const formData = new FormData();
+      formData.append("title", title);
+      formData.append("category", category);
+      formData.append("date", `${date} • ${time}`);
+      formData.append("location", location);
+      formData.append("maxAttendees", maxAttendees);
+      formData.append("vibe", vibe);
+      formData.append("description", description);
+      
+      if (imageFile) {
+        formData.append("image", imageFile);
+      } else {
+        // Fallback default picture if none uploaded
+        formData.append("image", "https://images.pexels.com/photos/1190297/pexels-photo-1190297.jpeg");
+      }
+
+      await createEvent(formData);
+      navigate("/home");
+    } catch (error) {
+      console.error("Error creating event:", error);
+      alert(error.response?.data?.error || "Failed to create event");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -60,13 +81,13 @@ const CreateEvent = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="min-h-screen bg-[#0B0B0F] text-white px-6 py-8 pb-24"
+      className="min-h-screen bg-[#0B0B0F] text-white px-6 py-8 pb-32"
     >
       {/* Top Bar */}
       <div className="flex items-center justify-between mb-8">
         <BackButton />
         <h1 className="text-xl font-bold">Host an Event</h1>
-        <div className="w-10" /> {/* Spacer to balance back button */}
+        <div className="w-10" />
       </div>
 
       {/* Header Banner */}
@@ -97,6 +118,22 @@ const CreateEvent = () => {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
+            />
+          </div>
+        </div>
+
+        {/* Image Upload Field */}
+        <div>
+          <label className="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">
+            Event Cover Image
+          </label>
+          <div className="relative flex items-center bg-[#17171C] border border-white/10 rounded-2xl px-4 py-3">
+            <ImageIcon size={20} className="text-gray-400 mr-3 shrink-0" />
+            <input 
+              type="file"
+              accept="image/*"
+              onChange={(e) => setImageFile(e.target.files[0])}
+              className="w-full text-xs text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[#FF6B6B] file:text-white hover:file:opacity-90 transition cursor-pointer"
             />
           </div>
         </div>
@@ -233,13 +270,15 @@ const CreateEvent = () => {
 
         {/* Submit Button */}
         <div className="pt-4">
-          <Button type="submit" className="w-full">
-            Publish Event
+          <Button type="submit" className="w-full py-4 font-bold" disabled={loading}>
+            {loading ? "Publishing Event..." : "Publish Event"}
           </Button>
         </div>
 
       </form>
-      <BottomNav/>
+
+      {/* Persistent Bottom Nav with active unread state */}
+      <BottomNav unreadMessagesCount={unreadMessages} />
     </motion.div>
   );
 };

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  ArrowLeft,
   Mail,
   Lock,
   Eye,
@@ -18,19 +17,70 @@ import AuthHeader from "../components/ui/AuthHeader";
 import Divider from "../components/ui/Divider";
 import SocialButton from "../components/ui/SocialButton";
 
+import { loginUser } from "../services/api";
+import { signInWithGoogle } from "../services/firebase";
+import API from "../services/api";
+
 const Login = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   
-  // Add state for form inputs
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    // TODO: Send email and password to your backend API
-    console.log("Logging in with:", email, password);
-    navigate("/home"); // Redirect to home feed after login
+    setErrorMsg("");
+    setLoading(true);
+
+    try {
+      const response = await loginUser({ email, password });
+      
+      // Handle potential nested data wrappers from backend controllers safely
+      const userData = response.data.data || response.data;
+      
+      if (!userData.token) {
+        throw new Error("Authentication token missing from server response.");
+      }
+      
+      localStorage.setItem("userInfo", JSON.stringify(userData));
+      navigate("/home"); 
+    } catch (error) {
+      console.error("Login Error:", error);
+      setErrorMsg(error.response?.data?.error || error.message || "Failed to log in. Please check your details.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setErrorMsg("");
+    try {
+      const googleUser = await signInWithGoogle();
+      
+      if (googleUser) {
+        const response = await API.post("/auth/google", {
+          name: googleUser.displayName,
+          email: googleUser.email,
+          avatar: googleUser.photoURL,
+        });
+
+        // Handle potential nested data wrappers safely
+        const userData = response.data.data || response.data;
+
+        if (!userData.token) {
+          throw new Error("Authentication token missing from Google auth response.");
+        }
+
+        localStorage.setItem("userInfo", JSON.stringify(userData));
+        navigate("/home");
+      }
+    } catch (error) {
+      console.error("Google Auth Error:", error);
+      setErrorMsg(error.response?.data?.error || error.message || "Failed to sign in with Google. Please try again.");
+    }
   };
 
   return (
@@ -47,10 +97,13 @@ const Login = () => {
         subtitle="Sign in to discover events, connect with people and create unforgettable memories."
       />
 
-      {/* Wrap in a form to handle submission nicely */}
-      <form onSubmit={handleLogin} className="mt-12 space-y-6">
-        
-        {/* Email */}
+      {errorMsg && (
+        <div className="mt-4 p-3 bg-red-500/10 border border-red-500 text-red-400 text-sm rounded-lg text-center">
+          {errorMsg}
+        </div>
+      )}
+
+      <form onSubmit={handleLogin} className="mt-8 space-y-6">
         <div className="relative">
           <Mail size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
           <Input 
@@ -59,10 +112,10 @@ const Login = () => {
             className="pl-12"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            required
           />
         </div>
 
-        {/* Password */}
         <div className="relative">
           <Lock size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
           <Input
@@ -71,6 +124,7 @@ const Login = () => {
             className="pl-12 pr-12"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            required
           />
           <button
             type="button"
@@ -87,14 +141,15 @@ const Login = () => {
           </button>
         </div>
 
-        <Button type="submit">
-          Sign In
+        <Button type="submit" disabled={loading}>
+          {loading ? "Signing In..." : "Sign In"}
         </Button>
       </form>
 
       <Divider />
 
       <SocialButton
+        onClick={handleGoogleLogin}
         icon={<img src={googleLogo} alt="Google" className="w-5 h-5" />}
       >
         Continue with Google

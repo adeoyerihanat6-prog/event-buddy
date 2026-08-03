@@ -1,0 +1,84 @@
+mutation SeedAllData @transaction {
+  user_insertMany(data: [
+    {
+      id: "550e8400-e29b-41d4-a716-446655440001",
+      displayName: "Alice Smith",
+      email: "alice@example.com",
+      bio: "Software Engineer and marathon runner.",
+      interests: ["running", "tech"]
+    },
+    {
+      id: "550e8400-e29b-41d4-a716-446655440002",
+      displayName: "Bob Jones",
+      email: "bob@example.com",
+      bio: "Music enthusiast and amateur chef.",
+      interests: ["cooking", "music"]
+    },
+    {
+      id: "550e8400-e29b-41d4-a716-446655440003",
+      displayName: "Charlie Brown",
+      email: "charlie@example.com",
+      bio: "Traveler and photography buff.",
+      interests: ["travel", "photography"]
+    }
+  ])
+  interestCategory_insertMany(data: [
+    {
+      id: "770e8400-e29b-41d4-a716-446655440001",
+      name: "Technology",
+      iconUrl: "https://example.com/icons/tech.png"
+    },
+    {
+      id: "770e8400-e29b-41d4-a716-446655440002",
+      name: "Outdoors",
+      iconUrl: "https://example.com/icons/outdoors.png"
+    },
+    {
+      id: "770e8400-e29b-41d4-a716-446655440003",
+      name: "Cooking",
+      iconUrl: "https://example.com/icons/cooking.png"
+    }
+  ])
+  event_insertMany(data: [
+    {
+      id: "990e8400-e29b-41d4-a716-446655440001",
+      title: "Tech Meetup",
+      description: "Networking for software developers.",
+      dateTime: "2024-12-01T18:00:00Z",
+      location: "San Francisco",
+      organizerId: "550e8400-e29b-41d4-a716-446655440001",
+      categoryId: "770e8400-e29b-41d4-a716-446655440001",
+      maxAttendees: 50
+    },
+    {
+      id: "990e8400-e29b-41d4-a716-446655440002",
+      title: "Cooking Class",
+      description: "Learn to make authentic pasta.",
+      dateTime: "2024-12-05T19:00:00Z",
+      location: "New York",
+      organizerId: "550e8400-e29b-41d4-a716-446655440002",
+      categoryId: "770e8400-e29b-41d4-a716-446655440003",
+      maxAttendees: 15
+    }
+  ])
+  rSVP_insertMany(data: [
+    {
+      userId: "550e8400-e29b-41d4-a716-446655440002",
+      eventId: "990e8400-e29b-41d4-a716-446655440001",
+      status: "confirmed"
+    },
+    {
+      userId: "550e8400-e29b-41d4-a716-446655440003",
+      eventId: "990e8400-e29b-41d4-a716-446655440002",
+      status: "pending"
+    }
+  ])
+  connection_insertMany(data: [
+    {
+      userAId: "550e8400-e29b-41d4-a716-446655440001",
+      userBId: "550e8400-e29b-41d4-a716-446655440002",
+      sourceEventId: "990e8400-e29b-41d4-a716-446655440001",
+      status: "active"
+    }
+  ])
+}

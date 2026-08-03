@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { 
   Calendar, 
@@ -8,30 +8,77 @@ import {
   Star, 
   MessageSquare, 
   Share2, 
-  ShieldCheck, 
-  ArrowLeft 
+  ShieldCheck 
 } from "lucide-react";
 import { motion } from "framer-motion";
 
 import BackButton from "../components/ui/BackButton";
 import Button from "../components/ui/Button";
 
+// Import your API services
+import { fetchEventById, joinEventById } from "../services/api";
+
 const EventDetails = () => {
   const navigate = useNavigate();
-  const { id } = useParams(); // Can be used later to fetch specific event data
+  const { id } = useParams();
 
+  const [event, setEvent] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [isGoing, setIsGoing] = useState(false);
-  const [attendeeCount, setAttendeeCount] = useState(326);
+  const [attendeeCount, setAttendeeCount] = useState(0);
 
-  const handleToggleGoing = () => {
-    if (isGoing) {
-      setIsGoing(false);
-      setAttendeeCount((prev) => prev - 1);
-    } else {
-      setIsGoing(true);
-      setAttendeeCount((prev) => prev + 1);
+  // Fetch event details on load
+  useEffect(() => {
+    const getEventDetails = async () => {
+      try {
+        const { data } = await fetchEventById(id);
+        setEvent(data);
+        
+        // Check if currently logged-in user has already joined
+        const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+        if (userInfo && data.attendees) {
+          const alreadyJoined = data.attendees.includes(userInfo._id);
+          setIsGoing(alreadyJoined);
+        }
+        
+        setAttendeeCount(data.attendees ? data.attendees.length : 0);
+      } catch (error) {
+        console.error("Error fetching event details:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getEventDetails();
+  }, [id]);
+
+  // Handle joining/leaving via API
+  const handleToggleGoing = async () => {
+    try {
+      const { data } = await joinEventById(id);
+      setIsGoing(!isGoing);
+      setAttendeeCount(data.event.attendees.length);
+    } catch (error) {
+      alert(error.response?.data?.error || "Failed to update RSVP status");
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#0B0B0F] text-white flex items-center justify-center">
+        <p className="text-gray-400">Loading event details...</p>
+      </div>
+    );
+  }
+
+  if (!event) {
+    return (
+      <div className="min-h-screen bg-[#0B0B0F] text-white flex flex-col items-center justify-center px-6">
+        <p className="text-gray-400 mb-4">Event not found</p>
+        <Button onClick={() => navigate("/home")}>Back to Home</Button>
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -43,8 +90,8 @@ const EventDetails = () => {
       {/* Top Image & Absolute Navigation */}
       <div className="relative h-72 w-full">
         <img
-          src="https://images.pexels.com/photos/1190297/pexels-photo-1190297.jpeg"
-          alt="Event"
+          src={event.image}
+          alt={event.title}
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#0B0B0F] via-transparent to-black/40" />
@@ -62,7 +109,7 @@ const EventDetails = () => {
         {/* Category Badge */}
         <div className="absolute bottom-4 left-6 z-10">
           <span className="bg-[#FF6B6B] text-white text-xs font-semibold px-3 py-1 rounded-full shadow-lg">
-            Music & Concerts
+            {event.category || "General"}
           </span>
         </div>
       </div>
@@ -73,13 +120,15 @@ const EventDetails = () => {
         {/* Title and Rating */}
         <div>
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-black text-white">Summer Music Festival</h1>
+            <h1 className="text-2xl font-black text-white">{event.title}</h1>
             <div className="flex items-center gap-1 bg-[#17171C] border border-white/10 px-2.5 py-1 rounded-xl text-sm font-semibold">
               <Star size={16} className="text-[#FFD166] fill-[#FFD166]" />
-              <span>4.9</span>
+              <span>{event.rating || "4.9"}</span>
             </div>
           </div>
-          <p className="text-sm text-gray-400 mt-1">Hosted by Sarah, 24 • Verified Host ✓</p>
+          <p className="text-sm text-gray-400 mt-1">
+            Hosted by {event.creator?.name || "Event Creator"} • Verified Host ✓
+          </p>
         </div>
 
         {/* Date, Time & Location Cards */}
@@ -90,7 +139,7 @@ const EventDetails = () => {
             </div>
             <div>
               <p className="text-xs text-gray-400">Date</p>
-              <p className="text-sm font-semibold mt-0.5">20 Aug, 2026</p>
+              <p className="text-sm font-semibold mt-0.5">{event.date}</p>
             </div>
           </div>
 
@@ -113,7 +162,7 @@ const EventDetails = () => {
             </div>
             <div>
               <p className="text-xs text-gray-400">Location</p>
-              <p className="text-sm font-semibold mt-0.5">Lagos, Nigeria (Central Park)</p>
+              <p className="text-sm font-semibold mt-0.5">{event.location}</p>
             </div>
           </div>
           <button className="text-xs text-[#FF6B6B] font-semibold hover:underline">
@@ -133,7 +182,7 @@ const EventDetails = () => {
         <div>
           <h2 className="text-lg font-bold mb-2">About Event</h2>
           <p className="text-sm text-gray-400 leading-relaxed">
-            Get ready for an unforgettable night of live indie music, great food, and amazing company! We are gathering a small group of music lovers to hang out together so nobody has to go alone. Meet us by the main entrance at 6:00 PM sharp.
+            {event.description}
           </p>
         </div>
 
@@ -149,7 +198,7 @@ const EventDetails = () => {
               <img className="w-10 h-10 rounded-full border-2 border-[#0B0B0F] object-cover" src="https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg" alt="User" />
               <img className="w-10 h-10 rounded-full border-2 border-[#0B0B0F] object-cover" src="https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg" alt="User" />
             </div>
-            <p className="text-xs text-gray-400">+323 others are going</p>
+            <p className="text-xs text-gray-400">+{Math.max(0, attendeeCount - 3)} others are going</p>
           </div>
         </div>
       </div>

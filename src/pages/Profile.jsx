@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
-  User, 
   Settings, 
   ShieldCheck, 
   Calendar, 
@@ -9,7 +8,8 @@ import {
   Edit3, 
   ChevronRight, 
   Star,
-  Bookmark
+  Bookmark,
+  User as UserIcon
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -17,37 +17,80 @@ import BackButton from "../components/ui/BackButton";
 import EventCard from "../components/ui/EventCard";
 import BottomNav from "../components/ui/BottomNav";
 
+// Import your user API services
+import { fetchUserProfile } from "../services/api";
+
 const Profile = () => {
   const navigate = useNavigate();
 
-  // Mock user data state
+  // User state initialized empty so it doesn't show hardcoded placeholder text
   const [user, setUser] = useState({
-    name: "Alex Johnson",
-    age: 24,
-    location: "Lagos, Nigeria",
-    bio: "Music lover, weekend explorer, and looking for cool people to hit up concerts with! 🎸",
-    vibe: "Introvert friendly 🌙",
-    intent: "Just looking for company",
-    rating: "4.9",
-    eventsAttended: 14,
-    eventsHosted: 3,
-    isVerified: true,
-    avatar: "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg"
+    name: "",
+    age: "",
+    location: "",
+    bio: "",
+    vibe: "",
+    intent: "",
+    rating: "",
+    eventsAttended: 0,
+    eventsHosted: 0,
+    isVerified: false,
+    avatar: ""
   });
+
+  const [loading, setLoading] = useState(true);
 
   // Saved events state
   const [savedEvents, setSavedEvents] = useState([]);
+  
+  // Dynamic unread message badge state for BottomNav
+  const [unreadMessages, setUnreadMessages] = useState(0);
 
   useEffect(() => {
+    // Fetch real logged-in user profile from backend
+    const getUserData = async () => {
+      try {
+        const { data } = await fetchUserProfile();
+        setUser({
+          name: data.name || "",
+          age: data.age || "",
+          location: data.location || "",
+          bio: data.bio || "",
+          vibe: data.vibe || "",
+          intent: data.intent || "",
+          rating: data.rating || "",
+          eventsAttended: data.eventsAttended || 0,
+          eventsHosted: data.eventsHosted || 0,
+          isVerified: data.isVerified || false,
+          avatar: data.avatar || ""
+        });
+      } catch (error) {
+        console.error("Error fetching user profile:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getUserData();
+
     // Load bookmarked events from localStorage
     const stored = JSON.parse(localStorage.getItem("eventBuddy_saved")) || [];
     setSavedEvents(stored);
   }, []);
 
   const handleLogout = () => {
-    // TODO: Clear auth tokens / session
+    // Clear user session from browser storage
+    localStorage.removeItem("userInfo");
     navigate("/login");
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#0B0B0F] text-white flex items-center justify-center">
+        <p className="text-gray-400">Loading your profile...</p>
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -76,11 +119,17 @@ const Profile = () => {
 
         {/* Avatar */}
         <div className="relative mb-4">
-          <img
-            src={user.avatar}
-            alt={user.name}
-            className="w-24 h-24 rounded-full object-cover border-2 border-[#FF6B6B]"
-          />
+          {user.avatar ? (
+            <img
+              src={user.avatar}
+              alt={user.name}
+              className="w-24 h-24 rounded-full object-cover border-2 border-[#FF6B6B]"
+            />
+          ) : (
+            <div className="w-24 h-24 rounded-full bg-gray-800 border-2 border-[#FF6B6B] flex items-center justify-center">
+              <UserIcon size={36} className="text-gray-400" />
+            </div>
+          )}
           {user.isVerified && (
             <div className="absolute bottom-0 right-0 bg-emerald-500 text-white p-1 rounded-full border-2 border-[#0B0B0F]" title="Verified User">
               <ShieldCheck size={14} />
@@ -90,24 +139,41 @@ const Profile = () => {
 
         {/* Name & Age */}
         <div className="flex items-center gap-2">
-          <h2 className="text-xl font-black">{user.name}, {user.age}</h2>
+          <h2 className="text-xl font-black">
+            {user.name ? `${user.name}${user.age ? `, ${user.age}` : ""}` : "Complete Your Profile"}
+          </h2>
         </div>
-        <p className="text-xs text-gray-400 mt-1">{user.location}</p>
+        {user.location && <p className="text-xs text-gray-400 mt-1">{user.location}</p>}
 
-        {/* Bio */}
-        <p className="text-sm text-gray-300 mt-4 leading-relaxed max-w-xs">
-          {user.bio}
-        </p>
+        {/* Bio - Displays only if user has added one */}
+        {user.bio ? (
+          <p className="text-sm text-gray-300 mt-4 leading-relaxed max-w-xs">
+            {user.bio}
+          </p>
+        ) : (
+          <button 
+            onClick={() => navigate("/edit-profile")}
+            className="text-xs text-[#FF6B6B] mt-3 underline hover:opacity-80 transition"
+          >
+            + Add a bio to tell people about yourself
+          </button>
+        )}
 
-        {/* Vibe Tags */}
-        <div className="flex flex-wrap justify-center gap-2 mt-4">
-          <span className="text-xs font-medium bg-[#FF6B6B]/10 text-[#FF6B6B] border border-[#FF6B6B]/20 px-3 py-1 rounded-full">
-            {user.vibe}
-          </span>
-          <span className="text-xs font-medium bg-white/5 text-gray-300 border border-white/10 px-3 py-1 rounded-full">
-            {user.intent}
-          </span>
-        </div>
+        {/* Vibe Tags - Render only if they exist */}
+        {(user.vibe || user.intent) && (
+          <div className="flex flex-wrap justify-center gap-2 mt-4">
+            {user.vibe && (
+              <span className="text-xs font-medium bg-[#FF6B6B]/10 text-[#FF6B6B] border border-[#FF6B6B]/20 px-3 py-1 rounded-full">
+                {user.vibe}
+              </span>
+            )}
+            {user.intent && (
+              <span className="text-xs font-medium bg-white/5 text-gray-300 border border-white/10 px-3 py-1 rounded-full">
+                {user.intent}
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Stats Row */}
         <div className="grid grid-cols-3 w-full gap-2 mt-6 pt-6 border-t border-white/10 text-center">
@@ -122,7 +188,7 @@ const Profile = () => {
           <div>
             <div className="flex items-center justify-center gap-1">
               <Star size={14} className="text-[#FFD166] fill-[#FFD166]" />
-              <p className="text-lg font-bold text-white">{user.rating}</p>
+              <p className="text-lg font-bold text-white">{user.rating || "0.0"}</p>
             </div>
             <p className="text-[11px] text-gray-400 uppercase tracking-wider mt-0.5">Rating</p>
           </div>
@@ -131,7 +197,6 @@ const Profile = () => {
 
       {/* Menu Navigation Options */}
       <div className="mt-8 space-y-3">
-        
         <button 
           onClick={() => navigate("/edit-profile")}
           className="w-full bg-[#17171C] border border-white/10 p-4 rounded-2xl flex items-center justify-between text-left hover:border-white/20 transition"
@@ -179,7 +244,6 @@ const Profile = () => {
           </div>
           <ChevronRight size={18} className="text-gray-500" />
         </button>
-
       </div>
 
       {/* Saved Events Section */}
@@ -221,7 +285,9 @@ const Profile = () => {
           Sign Out
         </button>
       </div>
-<BottomNav/>
+
+      {/* Dynamic Bottom Nav */}
+      <BottomNav unreadMessagesCount={unreadMessages} />
     </motion.div>
   );
 };

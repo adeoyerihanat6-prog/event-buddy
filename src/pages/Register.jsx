@@ -13,6 +13,11 @@ import Input from "../components/ui/Input";
 import PasswordInput from "../components/ui/PasswordInput";
 import SocialButton from "../components/ui/SocialButton";
 
+// Import your API registration service and Firebase auth
+import { registerUser } from "../services/api";
+import { signInWithGoogle } from "../services/firebase";
+import API from "../services/api";
+
 const Register = () => {
   const navigate = useNavigate();
 
@@ -22,21 +27,71 @@ const Register = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
+    setError("");
 
-    // Basic frontend check
+    // Frontend check for password matching
     if (password !== confirmPassword) {
       setError("Passwords do not match!");
       return;
     }
 
+    setLoading(true);
+
+    try {
+      // Send data to backend API (mapping fullName to name as expected by User model)
+      const { data } = await registerUser({ 
+        name: fullName, 
+        email, 
+        password 
+      });
+
+      // Save user session & token to localStorage securely for subsequent API requests
+      localStorage.setItem("userInfo", JSON.stringify(data));
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+      }
+
+      // Navigate to onboarding after successful account creation
+      navigate("/onboarding");
+    } catch (err) {
+      // Catch backend error response or fallback
+      setError(err.response?.data?.error || "Registration failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleRegister = async () => {
     setError("");
-    console.log("Registering:", { fullName, email, password });
-    
-    // TODO: Send data to your backend API, then navigate to onboarding
-    navigate("/onboarding");
+    try {
+      // 1. Trigger Firebase Google Popup sign-in
+      const googleUser = await signInWithGoogle();
+      
+      if (googleUser) {
+        // 2. Send Google profile data to backend API to create/login user and get app JWT token
+        const { data } = await API.post("/auth/google", {
+          name: googleUser.displayName,
+          email: googleUser.email,
+          avatar: googleUser.photoURL,
+        });
+
+        // 3. Save user session & token locally
+        localStorage.setItem("userInfo", JSON.stringify(data));
+        if (data.token) {
+          localStorage.setItem("token", data.token);
+        }
+
+        // 4. Navigate to onboarding
+        navigate("/onboarding");
+      }
+    } catch (err) {
+      console.error("Google Auth Error:", err);
+      setError("Failed to sign up with Google. Please try again.");
+    }
   };
 
   return (
@@ -57,7 +112,7 @@ const Register = () => {
 
       {/* Error Message Alert */}
       {error && (
-        <div className="mt-4 p-3 bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-xl">
+        <div className="mt-4 p-3 bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-xl text-center">
           {error}
         </div>
       )}
@@ -108,8 +163,8 @@ const Register = () => {
         />
 
         {/* Create Account Button */}
-        <Button type="submit">
-          Create Account
+        <Button type="submit" disabled={loading}>
+          {loading ? "Creating Account..." : "Create Account"}
         </Button>
       </form>
 
@@ -118,6 +173,7 @@ const Register = () => {
 
       {/* Google */}
       <SocialButton
+        onClick={handleGoogleRegister}
         icon={<img src={googleLogo} alt="Google" className="w-5 h-5" />}
       >
         Continue with Google

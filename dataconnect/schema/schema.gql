@@ -1,0 +1,36 @@
+type User @table {
+  displayName: String!
+  email: String!
+  bio: String!
+  interests: [String]
+  profilePictureUrl: String
+}
+
+type InterestCategory @table {
+  name: String!
+  iconUrl: String
+}
+
+type Event @table {
+  title: String!
+  description: String!
+  dateTime: Timestamp!
+  location: String!
+  organizer: User!
+  category: InterestCategory
+  maxAttendees: Int
+  imageUrl: String
+}
+
+type RSVP @table {
+  user: User!
+  event: Event!
+  status: String!
+}
+
+type Connection @table {
+  userA: User!
+  userB: User!
+  sourceEvent: Event!
+  status: String!
+}

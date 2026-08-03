@@ -1,134 +1,192 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Send, Image, MapPin, ShieldCheck, MoreVertical } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { useParams } from "react-router-dom";
+import { Send } from "lucide-react";
 import { motion } from "framer-motion";
+import { io } from "socket.io-client";
 
 import BackButton from "../components/ui/BackButton";
-import BottomNav from "../components/ui/BottomNav";
+import API from "../services/api";
+
+const socket = io("http://localhost:5000");
 
 const Chat = () => {
-  const navigate = useNavigate();
-
-  const [messages, setMessages] = useState([
-    { id: 1, sender: "Sarah (Host)", text: "Hey everyone! So excited for the festival tomorrow 🎉", time: "5:30 PM", isMe: false },
-    { id: 2, sender: "David", text: "Same here! Is everyone meeting at the main entrance?", time: "5:32 PM", isMe: false },
-    { id: 3, sender: "You", text: "Yes, I'll be there right around 6:00 PM!", time: "5:35 PM", isMe: true },
-  ]);
-
+  const { eventId, friendId } = useParams();
+  const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [friendInfo, setFriendInfo] = useState(null);
+  const messagesEndRef = useRef(null);
 
-  const handleSendMessage = (e) => {
+  const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+  const currentUserId = userInfo?._id;
+
+  const isPrivate = Boolean(friendId);
+  const roomId = isPrivate
+    ? [currentUserId, friendId].sort().join("_")
+    : eventId
+    ? `event_${eventId}`
+    : "general";
+
+  useEffect(() => {
+    const fetchChatData = async () => {
+      try {
+        // 1. Fetch messages
+        const endpoint = isPrivate ? `/chats/private/${friendId}` : `/chats/${eventId || "general"}`;
+        const msgRes = await API.get(endpoint);
+        setMessages(msgRes.data);
+
+        // 2. If it's a private chat, fetch buddy details for the header
+        if (isPrivate) {
+          const userRes = await API.get(`/users/${friendId}`);
+          setFriendInfo(userRes.data);
+        }
+
+        // 3. Automatically mark messages as read to clear notification badges
+        const readEndpoint = isPrivate ? `/chats/read/private/${friendId}` : `/chats/read/${eventId || "general"}`;
+        await API.put(readEndpoint);
+
+      } catch (error) {
+        console.error("Error fetching chat data or marking read:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchChatData();
+
+    // Join room
+    socket.emit("join_room", roomId);
+
+    // Listen for incoming messages
+    const handleReceiveMessage = (messageData) => {
+      setMessages((prev) => [...prev, messageData]);
+    };
+
+    socket.on("receive_message", handleReceiveMessage);
+
+    return () => {
+      socket.off("receive_message", handleReceiveMessage);
+    };
+  }, [eventId, friendId, roomId, isPrivate]);
+
+  // Auto scroll to bottom when messages update
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const handleSend = async (e) => {
     e.preventDefault();
     if (!newMessage.trim()) return;
 
-    const messageObj = {
-      id: messages.length + 1,
-      sender: "You",
-      text: newMessage,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      isMe: true,
-    };
+    try {
+      const endpoint = isPrivate ? `/chats/private/${friendId}` : `/chats/${eventId || "general"}`;
+      const { data } = await API.post(endpoint, {
+        text: newMessage,
+      });
 
-    setMessages([...messages, messageObj]);
-    setNewMessage("");
+      socket.emit("send_message", { roomId, ...data });
+
+      setMessages((prev) => [...prev, data]);
+      setNewMessage("");
+    } catch (error) {
+      console.error("Error sending message:", error.response?.data || error.message);
+    }
   };
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.3 }}
-      className="flex flex-col h-screen bg-[#0B0B0F] text-white"
+      className="min-h-screen bg-[#0B0B0F] text-white flex flex-col justify-between"
     >
-      {/* Top Header Bar */}
-      <div className="flex items-center justify-between px-6 py-4 bg-[#17171C]/80 backdrop-blur-md border-b border-white/10 shrink-0">
+      {/* Top Header */}
+      <div className="bg-[#17171C]/80 backdrop-blur-md border-b border-white/10 px-6 py-3 flex items-center justify-between sticky top-0 z-50">
         <div className="flex items-center gap-3">
           <BackButton />
-          <div>
-            <h1 className="text-sm font-bold truncate max-w-[180px]">Summer Music Festival</h1>
-            <p className="text-xs text-emerald-400 font-medium">327 buddies connected</p>
-          </div>
-        </div>
-        <button className="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-300 hover:bg-white/10 transition">
-          <MoreVertical size={18} />
-        </button>
-      </div>
-
-      {/* Pinned Event Info Banner */}
-      <div className="bg-[#FF6B6B]/10 border-b border-[#FF6B6B]/20 px-6 py-2.5 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-2 text-xs text-gray-300">
-          <MapPin size={14} className="text-[#FF6B6B] shrink-0" />
-          <span>Meetup: Main Entrance • Sat, 20 Aug at 6:00 PM</span>
-        </div>
-        <span className="text-[10px] bg-[#FF6B6B] text-white font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
-          Pinned
-        </span>
-      </div>
-
-      {/* Message History Feed */}
-      <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
-        {/* Safety Disclaimer */}
-        <div className="text-center my-2">
-          <span className="inline-flex items-center gap-1.5 text-[11px] text-gray-400 bg-white/5 border border-white/10 px-3 py-1.5 rounded-xl">
-            <ShieldCheck size={14} className="text-[#FF6B6B]" />
-            Keep meetups in public areas & look out for each other!
-          </span>
-        </div>
-
-        {messages.map((msg) => (
-          <div
-            key={msg.id}
-            className={`flex flex-col ${msg.isMe ? "items-end" : "items-start"}`}
-          >
-            {!msg.isMe && (
-              <span className="text-[11px] text-gray-400 mb-1 ml-1 font-medium">
-                {msg.sender}
-              </span>
+          
+          <div className="flex items-center gap-3">
+            {isPrivate && (
+              <img
+                src={friendInfo?.avatar || "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg"}
+                alt="buddy avatar"
+                className="w-9 h-9 rounded-full object-cover border border-white/10"
+              />
             )}
-            <div
-              className={`max-w-[75%] px-4 py-3 rounded-2xl text-sm leading-relaxed ${
-                msg.isMe
-                  ? "bg-[#FF6B6B] text-white rounded-br-none shadow-lg shadow-[#FF6B6B]/20"
-                  : "bg-[#17171C] border border-white/10 text-gray-200 rounded-bl-none"
-              }`}
-            >
-              {msg.text}
+            <div>
+              <h1 className="text-sm font-bold">
+                {isPrivate
+                  ? friendInfo?.name || "Direct Message"
+                  : eventId
+                  ? "Event Group Chat"
+                  : "General Community Chat"}
+              </h1>
+              <p className="text-[10px] text-emerald-400">
+                {isPrivate ? "● Online" : "● Live Connection"}
+              </p>
             </div>
-            <span className="text-[10px] text-gray-500 mt-1 mx-1">
-              {msg.time}
-            </span>
           </div>
-        ))}
+        </div>
       </div>
 
-      {/* Bottom Input Form */}
-      <form
-        onSubmit={handleSendMessage}
-        className="px-6 py-4 bg-[#17171C] border-t border-white/10 flex items-center gap-3 shrink-0"
-      >
-        <button
-          type="button"
-          className="text-gray-400 hover:text-white transition p-2"
-        >
-          <Image size={20} />
-        </button>
+      {/* Message Feed */}
+      <div className="flex-1 px-6 py-4 overflow-y-auto space-y-4 pb-24">
+        {loading ? (
+          <p className="text-center text-gray-500 text-xs mt-10">Loading messages...</p>
+        ) : messages.length === 0 ? (
+          <div className="text-center py-20 text-gray-500 text-xs">
+            No messages yet. Start the conversation! 👋
+          </div>
+        ) : (
+          messages.map((msg, index) => {
+            const isMe = msg.sender?._id === currentUserId;
+            return (
+              <div
+                key={index}
+                className={`flex items-end gap-2.5 ${isMe ? "flex-row-reverse" : "flex-row"}`}
+              >
+                {!isMe && (
+                  <img
+                    src={msg.sender?.avatar || "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg"}
+                    alt="avatar"
+                    className="w-8 h-8 rounded-full object-cover border border-white/10"
+                  />
+                )}
+                <div
+                  className={`max-w-[75%] p-3.5 rounded-2xl text-xs leading-relaxed ${
+                    isMe
+                      ? "bg-[#FF6B6B] text-white rounded-br-none"
+                      : "bg-[#17171C] border border-white/10 text-gray-200 rounded-bl-none"
+                  }`}
+                >
+                  {!isMe && <p className="font-bold text-[#FF6B6B] mb-1 text-[11px]">{msg.sender?.name}</p>}
+                  <p>{msg.text}</p>
+                </div>
+              </div>
+            );
+          })
+        )}
+        <div ref={messagesEndRef} />
+      </div>
 
+      {/* Input Form Bar */}
+      <form
+        onSubmit={handleSend}
+        className="fixed bottom-0 left-0 right-0 bg-[#0B0B0F]/90 backdrop-blur-md border-t border-white/10 p-4 px-6 flex items-center gap-3 z-50"
+      >
         <input
           type="text"
-          placeholder="Type a message to your event buddies..."
-          className="flex-1 bg-[#0B0B0F] border border-white/10 rounded-2xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#FF6B6B] transition"
+          placeholder="Type a message..."
           value={newMessage}
           onChange={(e) => setNewMessage(e.target.value)}
+          className="flex-1 bg-[#17171C] border border-white/10 rounded-2xl px-4 py-3 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#FF6B6B] transition"
         />
-
         <button
           type="submit"
-          className="w-11 h-11 rounded-2xl bg-[#FF6B6B] text-white flex items-center justify-center shadow-lg shadow-[#FF6B6B]/30 hover:bg-[#ff5252] transition shrink-0"
+          className="p-3 bg-[#FF6B6B] text-white rounded-2xl hover:bg-[#ff5252] transition shadow-lg shadow-[#FF6B6B]/20"
         >
           <Send size={18} />
         </button>
       </form>
-     
     </motion.div>
   );
 };
