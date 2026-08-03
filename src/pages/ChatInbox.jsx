@@ -14,12 +14,13 @@ const ChatInbox = () => {
     const fetchChatInboxData = async () => {
       try {
         const friendsRes = await API.get("/users/friends");
-        setFriends(friendsRes.data);
+        setFriends(Array.isArray(friendsRes.data) ? friendsRes.data : []);
 
         const unreadRes = await API.get("/chats/unread-count").catch(() => ({ data: { count: 0 } }));
         setUnreadCount(unreadRes.data.count || 0);
       } catch (error) {
         console.error("Error fetching chat inbox data:", error);
+        setFriends([]);
       } finally {
         setLoading(false);
       }
@@ -68,13 +69,13 @@ const ChatInbox = () => {
           <h2 className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-2.5">Direct Messages (Buddies)</h2>
           {loading ? (
             <p className="text-center text-gray-500 text-xs mt-6">Loading chats...</p>
-          ) : friends.length === 0 ? (
+          ) : (friends || []).length === 0 ? (
             <div className="p-5 bg-[#17171C] border border-white/10 rounded-2xl text-center text-gray-400 text-xs leading-relaxed">
               No friends connected yet. Head over to Discover to add buddies!
             </div>
           ) : (
             <div className="space-y-3">
-              {friends.map((friend) => (
+              {(friends || []).map((friend) => (
                 <div
                   key={friend._id}
                   onClick={() => {
