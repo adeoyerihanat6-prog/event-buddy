@@ -4,6 +4,11 @@ import { ArrowLeft, Camera, Loader2, Save, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 import axios from "axios";
 
+// Automatically uses Localhost during development and Render when live on Vercel
+const API_URL = window.location.hostname === "localhost"
+  ? "http://localhost:5000"
+  : "https://event-buddy-backend.onrender.com";
+
 const EditProfile = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
@@ -15,7 +20,7 @@ const EditProfile = () => {
     bio: "",
     vibe: "",
     intent: "",
-    avatar: "" // Can store a URL or Base64 string for image preview/upload
+    avatar: ""
   });
 
   const [loading, setLoading] = useState(true);
@@ -29,7 +34,7 @@ const EditProfile = () => {
         const userInfo = JSON.parse(localStorage.getItem("userInfo"));
         const token = userInfo?.token;
 
-        const { data } = await axios.get("http://localhost:5000/api/users/profile", {
+        const { data } = await axios.get(`${API_URL}/api/users/profile`, {
           headers: { Authorization: `Bearer ${token}` }
         });
 
@@ -61,7 +66,6 @@ const EditProfile = () => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Optional: Check file size (e.g., max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         setError("Image size should be less than 5MB.");
         return;
@@ -93,9 +97,9 @@ const EditProfile = () => {
       const userInfo = JSON.parse(localStorage.getItem("userInfo"));
       const token = userInfo?.token;
 
-      // Send update request to backend user route (supports name, avatar, etc.)
+      // Send update request to backend user route
       const { data } = await axios.put(
-        "http://localhost:5000/api/users/profile",
+        `${API_URL}/api/users/profile`,
         formData,
         {
           headers: { Authorization: `Bearer ${token}` }
@@ -140,7 +144,7 @@ const EditProfile = () => {
           <ArrowLeft size={18} />
         </button>
         <h1 className="text-xl font-bold">Edit Profile</h1>
-        <div className="w-10" /> {/* Spacer */}
+        <div className="w-10" />
       </div>
 
       {error && (

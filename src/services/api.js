@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
+  baseURL: import.meta.env.VITE_API_URL || "https://event-buddy-backend.onrender.com/api",
 });
 
 // Automatically attach JWT token to requests if user is logged in
@@ -27,21 +27,13 @@ export const loginUser = (formData) => API.post("/auth/login", formData);
 
 // Event endpoints
 export const fetchEvents = () => API.get("/events");
-export const createEvent = (formData) => 
-  API.post("/events", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
+export const createEvent = (formData) => API.post("/events", formData);
 export const fetchEventById = (id) => API.get(`/events/${id}`);
 export const joinEventById = (id) => API.post(`/events/${id}/join`);
 
 // User Profile endpoints
 export const fetchUserProfile = () => API.get("/users/profile");
-export const updateUserProfile = (formData) => 
-  API.put("/users/profile", formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
+export const updateUserProfile = (formData) => API.put("/users/profile", formData);
 export const fetchUserById = (userId) => API.get(`/users/${userId}`);
 
 // Friend & Buddy System endpoints
