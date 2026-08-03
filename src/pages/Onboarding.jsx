@@ -26,19 +26,18 @@ const Onboarding = () => {
   };
 
   return (
-    <div className="h-screen bg-[#0B0B0F] overflow-hidden">
+    <div className="h-screen w-screen fixed inset-0 bg-[#0B0B0F] overflow-hidden">
       <Swiper
         modules={[Pagination]}
         onSwiper={(swiper) => (swiperRef.current = swiper)}
         onSlideChange={(swiper) => setActiveIndex(swiper.activeIndex)}
-        className="h-full"
+        className="h-full w-full"
       >
         {onboardingData.map((slide) => (
           <SwiperSlide key={slide.id}>
-            <div className="relative h-screen">
+            <div className="relative h-full w-full flex flex-col justify-end">
 
               {/* Background Image */}
-
               <motion.img
                 src={slide.image}
                 alt={slide.title}
@@ -52,102 +51,92 @@ const Onboarding = () => {
               />
 
               {/* Gradient Overlay */}
-
               <div className="absolute inset-0 bg-gradient-to-t from-[#0B0B0F] via-[#0B0B0F]/60 to-transparent" />
 
               {/* Skip Button */}
-
               <button
                 onClick={() => navigate("/login")}
-                className="absolute top-8 right-6 z-50 rounded-full border border-white/20 bg-white/10 px-5 py-2 text-sm font-medium text-white backdrop-blur-md transition-all duration-300 hover:bg-white/20"
+                className="absolute top-6 right-6 z-50 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-medium text-white backdrop-blur-md transition-all duration-300 hover:bg-white/20 active:scale-95"
               >
                 Skip
               </button>
 
               {/* Bottom Content */}
-
               <motion.div
                 key={slide.id}
-                initial={{ opacity: 0, y: 40 }}
+                initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{
-                  duration: 0.7,
+                  duration: 0.6,
                   ease: "easeOut",
                 }}
-                className="absolute bottom-0 z-40 w-full px-6 pb-12 md:pb-14"
+                className="relative z-40 w-full px-6 pb-8 pt-10"
               >
                 {/* Logo */}
-
                 <motion.h2
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ delay: 0.2 }}
-                  className="text-white text-xl font-bold mb-6"
+                  transition={{ delay: 0.15 }}
+                  className="text-white text-base font-bold mb-3"
                 >
                   Event <span className="text-[#FF6B6B]">Buddy</span>
                 </motion.h2>
 
                 {/* Title */}
-
                 <motion.h1
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                  className="text-white text-5xl font-black tracking-tight leading-[1.1] whitespace-pre-line"
+                  transition={{ delay: 0.25 }}
+                  className="text-white text-3xl font-black tracking-tight leading-[1.1] whitespace-pre-line"
                 >
                   {slide.title}
                 </motion.h1>
 
                 {/* Description */}
-
                 <motion.p
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ delay: 0.45 }}
-                  className="text-gray-300 text-lg leading-8 mt-5"
+                  transition={{ delay: 0.35 }}
+                  className="text-gray-300 text-xs leading-relaxed mt-3"
                 >
                   {slide.description}
                 </motion.p>
 
                 {/* Last Slide Message */}
-
                 {activeIndex === onboardingData.length - 1 && (
                   <motion.p
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    transition={{ delay: 0.55 }}
-                    className="text-center text-gray-300 mt-8"
+                    transition={{ delay: 0.45 }}
+                    className="text-center text-gray-300 text-[11px] mt-4"
                   >
                     Ready to find your next adventure?
                   </motion.p>
                 )}
 
                 {/* Indicators */}
-
-                <div className="flex justify-center gap-2 mt-8 mb-8">
+                <div className="flex justify-center gap-1.5 my-5">
                   {onboardingData.map((_, index) => (
                     <div
                       key={index}
                       className={`rounded-full transition-all duration-500 ease-in-out ${
                         activeIndex === index
-                          ? "w-8 h-2 bg-[#FF6B6B]"
-                          : "w-2 h-2 bg-gray-500"
+                          ? "w-6 h-1.5 bg-[#FF6B6B]"
+                          : "w-1.5 h-1.5 bg-gray-500"
                       }`}
                     />
                   ))}
                 </div>
 
                 {/* Button */}
-
                 <Button
-  onClick={handleNext}
-  variant={activeIndex === onboardingData.length - 1 ? "gold" : "primary"}
-  className="flex items-center justify-center gap-2"
->
-  {activeIndex === onboardingData.length - 1 ? "Let's Go" : "Next"}
-
-  <MoveRight size={18} strokeWidth={2.5} />
-</Button>
+                  onClick={handleNext}
+                  variant={activeIndex === onboardingData.length - 1 ? "gold" : "primary"}
+                  className="flex items-center justify-center gap-2 w-full py-3 text-xs rounded-xl shadow-lg active:scale-[0.98]"
+                >
+                  {activeIndex === onboardingData.length - 1 ? "Let's Go" : "Next"}
+                  <MoveRight size={16} strokeWidth={2.5} />
+                </Button>
               </motion.div>
             </div>
           </SwiperSlide>

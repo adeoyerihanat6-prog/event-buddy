@@ -96,91 +96,100 @@ const Register = () => {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 25 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="min-h-screen bg-[#0B0B0F] text-white px-6 py-8 flex flex-col"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="h-screen w-screen fixed inset-0 bg-[#0B0B0F] text-white flex flex-col justify-between overflow-hidden"
     >
-      {/* Back Button */}
-      <BackButton />
-
-      {/* Header */}
-      <AuthHeader
-        title="Create Account"
-        subtitle="Join Event Buddy and start finding your people today."
-      />
-
-      {/* Error Message Alert */}
-      {error && (
-        <div className="mt-4 p-3 bg-red-500/10 border border-red-500/30 text-red-400 text-sm rounded-xl text-center">
-          {error}
-        </div>
-      )}
-
-      {/* Form */}
-      <form onSubmit={handleRegister} className="mt-8 space-y-5">
-        
-        {/* Full Name */}
-        <div className="relative">
-          <User size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-          <Input
-            type="text"
-            placeholder="Full name"
-            className="pl-12"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
-            required
+      {/* Top Header Section (Locked) */}
+      <div className="px-6 pt-6 shrink-0">
+        <BackButton />
+        <div className="mt-3">
+          <AuthHeader
+            title="Create Account"
+            subtitle="Join Event Buddy and start finding your people today."
           />
         </div>
+      </div>
 
-        {/* Email */}
-        <div className="relative">
-          <Mail size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-          <Input
-            type="email"
-            placeholder="Email address"
-            className="pl-12"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+      {/* Form Content Area (Scrollable within boundaries) */}
+      <div className="flex-1 overflow-y-auto px-6 py-2 overscroll-contain flex flex-col justify-center">
+        {error && (
+          <div className="mb-3 p-2.5 bg-red-500/10 border border-red-500/30 text-red-400 text-xs rounded-xl text-center">
+            {error}
+          </div>
+        )}
+
+        {/* Form */}
+        <form onSubmit={handleRegister} className="space-y-3.5">
+          {/* Full Name */}
+          <div className="relative">
+            <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+            <Input
+              type="text"
+              placeholder="Full name"
+              className="pl-12 py-3 text-xs bg-[#17171C] border-white/10 rounded-2xl"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              required
+            />
+          </div>
+
+          {/* Email */}
+          <div className="relative">
+            <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+            <Input
+              type="email"
+              placeholder="Email address"
+              className="pl-12 py-3 text-xs bg-[#17171C] border-white/10 rounded-2xl"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+
+          {/* Password */}
+          <PasswordInput
+            placeholder="Password"
+            className="py-3 text-xs bg-[#17171C] border-white/10 rounded-2xl"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             required
           />
+
+          {/* Confirm Password */}
+          <PasswordInput
+            placeholder="Confirm Password"
+            className="py-3 text-xs bg-[#17171C] border-white/10 rounded-2xl"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+          />
+
+          {/* Create Account Button */}
+          <div className="pt-1">
+            <Button type="submit" disabled={loading} className="w-full py-3.5 rounded-2xl bg-[#FF6B6B] text-xs font-semibold active:scale-[0.98] transition">
+              {loading ? "Creating Account..." : "Create Account"}
+            </Button>
+          </div>
+        </form>
+
+        {/* Divider */}
+        <Divider className="my-4" />
+
+        {/* Google */}
+        <div className="active:scale-[0.98] transition">
+          <SocialButton
+            onClick={handleGoogleRegister}
+            icon={<img src={googleLogo} alt="Google" className="w-4 h-4" />}
+            className="py-3 text-xs rounded-2xl bg-[#17171C] border border-white/10"
+          >
+            Continue with Google
+          </SocialButton>
         </div>
+      </div>
 
-        {/* Password */}
-        <PasswordInput
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-
-        {/* Confirm Password */}
-        <PasswordInput
-          placeholder="Confirm Password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          required
-        />
-
-        {/* Create Account Button */}
-        <Button type="submit" disabled={loading}>
-          {loading ? "Creating Account..." : "Create Account"}
-        </Button>
-      </form>
-
-      {/* Divider */}
-      <Divider />
-
-      {/* Google */}
-      <SocialButton
-        onClick={handleGoogleRegister}
-        icon={<img src={googleLogo} alt="Google" className="w-5 h-5" />}
-      >
-        Continue with Google
-      </SocialButton>
-
-      {/* Footer */}
-      <div className="mt-auto pt-10 text-center text-gray-400">
+      {/* Footer (Anchored at the bottom) */}
+      <div className="p-6 text-center text-gray-400 text-xs shrink-0 bg-[#0B0B0F]">
         Already have an account?{" "}
         <Link
           to="/login"

@@ -11,3 +11,23 @@
   --color-text: #FFFFFF;
   --color-muted: #9CA3AF;
 }
+
+/* 1. Prevent elastic rubber-band scrolling and lock background */
+html, body, #root {
+  overscroll-behavior-y: none;
+  background-color: #0B0B0F;
+  color: #ffffff;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  user-select: none;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+/* 2. Allow text selection ONLY inside chat bubbles and inputs */
+input, textarea, p, span {
+  user-select: text;
+}
